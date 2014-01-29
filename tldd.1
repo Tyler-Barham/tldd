@@ -1,0 +1,35 @@
+.TH tldd 1 "January 2014" "" "User Commands"
+
+.SH NAME
+tldd \- Print tree of shared library dependencies
+
+.SH SYNOPSIS
+.B tldd
+[\fIOPTION\fR] \fIFILE\fR...
+
+.SH DESCRIPTION
+.PP
+A program similar to
+.BR ldd (1)
+but showing the output as a tree,
+so you can see where a particular dependency comes from.
+
+.SH OPTIONS
+.TP
+\fB\-f\fR, \fB\-\-full\fR
+allow libraries to be shown more than once
+.TP
+\fB\-A\fR, \fB\-\-ascii\fR
+use ASCII line-drawing characters
+.TP
+\fB\-U\fR, \fB\-\-utf8\fR
+use UTF-8 line-drawing characters
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+display help and exit
+
+.SH AUTHOR
+Jonathan Wakely
+
+.SH SEE ALSO
+.BR ldd (1)

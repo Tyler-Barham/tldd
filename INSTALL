@@ -1,0 +1,20 @@
+To compile tldd you need a C++11 compiler, e.g. GCC 4.7 or Clang 3.x, and my
+Pstreams library.
+
+If you have Pstreams 0.8.0 or later installed then to compile tldd just run:
+
+    make
+
+Otherwise run:
+
+    git clone git://git.code.sf.net/p/pstreams/code pstreams
+    make CPPFLAGS=-I.
+
+To install it just copy it somewhere nice, or to install it along with
+a man page run:
+
+    make install
+
+or:
+
+    make install PREFIX=$HOME
