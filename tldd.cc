@@ -1,6 +1,6 @@
 // tldd: print tree of shared library dependencies
 
-// Copyright (C) 2013 Jonathan Wakely
+// Copyright (C) 2013, 2018 Jonathan Wakely
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -272,8 +272,11 @@ int main(int argc, char** argv)
                     else
                     {
                         l.address = s;
-                        swap(l.soname, l.path);
-                        l.soname = read_soname(l.path).at(0);
+                        if (l.soname != "linux-vdso.so.1")
+                        {
+                            swap(l.soname, l.path);
+                            l.soname = read_soname(l.path).at(0);
+                        }
                         libs[l.soname] = l;
                     }
                 }
