@@ -151,7 +151,19 @@ find_dependencies(lib& l, libmap& libs)
     }
 }
 
-void print_deps(const lib& l, bool utf8, std::string prefix = {})
+std::string str_tolower(std::string str) {
+    std::transform(str.begin(), str.end(), str.begin(), 
+                   [](unsigned char c){ return std::tolower(c); }
+                  );
+    return str;
+}
+
+bool str_contains(std::string str, std::string substr)
+{
+    return (str_tolower(str).find(str_tolower(substr)) != std::string::npos);
+}
+
+void print_deps(const lib& l, bool utf8, std::string grep_str, std::string prefix = {})
 {
     const char* continues = utf8 ? u8"\u251c\u2500" : "|_";
     const char* finished = utf8 ? u8"\u2514\u2500" : "\\_";
@@ -161,13 +173,19 @@ void print_deps(const lib& l, bool utf8, std::string prefix = {})
     for (auto& d : l.dependencies)
     {
         const bool last = &d == &l.dependencies.back();
-        std::cout << prefix << (last ? finished : continues) << d->soname << " => ";
+        std::string soName = d->soname;
+        if (!grep_str.empty() && str_contains(soName, grep_str))
+        {
+            soName = "\033[31m"+soName+"\033[0m";
+        }
+
+        std::cout << prefix << (last ? finished : continues) << soName << " => ";
         if (d->address.empty())
             std::cout << "not found";
         else
             std::cout << d->path << ' ' << d->address;
         std::cout << '\n';
-        print_deps(*d, utf8, prefix + (last ? parent_finished : parent_continues));
+        print_deps(*d, utf8, grep_str, prefix + (last ? parent_finished : parent_continues));
     }
 }
 
@@ -196,7 +214,7 @@ void prune(lib& l)
 
 std::string usage(const std::string& name)
 {
-    return "Usage: " + name + " [-fAUh] FILE...";
+    return "Usage: " + name + " [-fauh] [-g <string>] FILE...";
 }
 
 int main(int argc, char** argv)
@@ -204,6 +222,7 @@ int main(int argc, char** argv)
     int arg = 1;
     bool all = false;
     bool utf8 = isatty(STDOUT_FILENO);
+    std::string grep_str = "";
 
     while (arg < argc && argv[arg][0] == '-')
     {
@@ -211,18 +230,28 @@ int main(int argc, char** argv)
         if (a == "-h" || a == "--help")
         {
             std::cout << usage(argv[0]) << "\n"
-                   "  -f, --full   allow libraries to be shown more than once\n"
-                   "  -A, --ascii  use ASCII line-drawing characters\n"
-                   "  -U, --utf8   use UTF-8 line-drawing characters\n"
-                   "  -h, --help   display this help and exit\n";
+                   "  -f, --full    allow libraries to be shown more than once\n"
+                   "  -a, --ascii   use ASCII line-drawing characters\n"
+                   "  -u, --utf8    use UTF-8 line-drawing characters\n"
+                   "  -g, --grep    highlight deps matching a substring\n"
+                   "  -h, --help    display this help and exit\n";
             return EXIT_SUCCESS;
         }
         else if (a == "-f" || a == "--full")
             all = true;
-        else if (a == "-U" || a == "--utf8")
+        else if (a == "-u" || a == "--utf8")
             utf8 = true;
-        else if (a == "-A" || a == "--ascii")
+        else if (a == "-a" || a == "--ascii")
             utf8 = false;
+        else if (a == "-g" || a == "--grep")
+        {
+            if (arg >= argc)
+            {
+                std::cerr << usage(argv[0]) << '\n';
+                return EXIT_FAILURE;
+            }
+            grep_str = argv[arg++];
+        }
         else if (a == "--")
             break;
         else
@@ -296,7 +325,7 @@ int main(int argc, char** argv)
                 prune(exe);
 
             std::cout << exe.path << '\n';
-            print_deps(exe, utf8);
+            print_deps(exe, utf8, grep_str);
 
             if (++arg < argc) 
                 std::cout << "--\n";
