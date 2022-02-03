@@ -1,4 +1,4 @@
-CXXFLAGS := -std=c++11 -O
+CXXFLAGS := -std=c++11 -O -I/usr/local/include
 PREFIX := /usr/local
 
 all: tldd
